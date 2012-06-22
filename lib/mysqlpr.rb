@@ -16,16 +16,16 @@ class MysqlPR
   require "mysql/protocol"
   require "mysql/packet.rb"
   
-  VERSION            = 20909               # Version number of this library
+  VERSION            = 20910               # Version number of this library
   MYSQL_UNIX_PORT    = "/tmp/mysql.sock"   # UNIX domain socket filename
   MYSQL_TCP_PORT     = 3306                # TCP socket port number
 
-  # @return [Mysql::Charset] character set of MySQL connection
+  # @return [MysqlPR::Charset] character set of MySQL connection
   attr_reader :charset
   # @private
   attr_reader :protocol
 
-  # @return [Boolean] if true, {#query} return {Mysql::Result}.
+  # @return [Boolean] if true, {#query} return {MysqlPR::Result}.
   attr_accessor :query_with_result
 
   class << self
@@ -100,7 +100,7 @@ class MysqlPR
   # @param [String / nil] db initial database name
   # @param [Integer / nil] port port number (used if host is not 'localhost' or nil)
   # @param [String / nil] socket socket file name (used if host is 'localhost' or nil)
-  # @param [Integer / nil] flag connection flag. Mysql::CLIENT_* ORed
+  # @param [Integer / nil] flag connection flag. MysqlPR::CLIENT_* ORed
   # @return self
   def connect(host=nil, user=nil, passwd=nil, db=nil, port=nil, socket=nil, flag=0)
     if flag & CLIENT_COMPRESS != 0
@@ -139,40 +139,40 @@ class MysqlPR
   # Set option for connection.
   #
   # Available options:
-  #   Mysql::INIT_COMMAND, Mysql::OPT_CONNECT_TIMEOUT, Mysql::OPT_READ_TIMEOUT,
-  #   Mysql::OPT_WRITE_TIMEOUT, Mysql::SET_CHARSET_NAME
+  #   MysqlPR::INIT_COMMAND, MysqlPR::OPT_CONNECT_TIMEOUT, MysqlPR::OPT_READ_TIMEOUT,
+  #   MysqlPR::OPT_WRITE_TIMEOUT, MysqlPR::SET_CHARSET_NAME
   # @param [Integer] opt option
   # @param [Integer] value option value that is depend on opt
   # @return [Mysql] self
   def options(opt, value=nil)
     case opt
-    when Mysql::INIT_COMMAND
+    when MysqlPR::INIT_COMMAND
       @init_command = value.to_s
-#    when Mysql::OPT_COMPRESS
-    when Mysql::OPT_CONNECT_TIMEOUT
+#    when MysqlPR::OPT_COMPRESS
+    when MysqlPR::OPT_CONNECT_TIMEOUT
       @connect_timeout = value
-#    when Mysql::GUESS_CONNECTION
-    when Mysql::OPT_LOCAL_INFILE
+#    when MysqlPR::GUESS_CONNECTION
+    when MysqlPR::OPT_LOCAL_INFILE
       @local_infile = value
-#    when Mysql::OPT_NAMED_PIPE
-#    when Mysql::OPT_PROTOCOL
-    when Mysql::OPT_READ_TIMEOUT
+#    when MysqlPR::OPT_NAMED_PIPE
+#    when MysqlPR::OPT_PROTOCOL
+    when MysqlPR::OPT_READ_TIMEOUT
       @read_timeout = value.to_i
-#    when Mysql::OPT_RECONNECT
-#    when Mysql::SET_CLIENT_IP
-#    when Mysql::OPT_SSL_VERIFY_SERVER_CERT
-#    when Mysql::OPT_USE_EMBEDDED_CONNECTION
-#    when Mysql::OPT_USE_REMOTE_CONNECTION
-    when Mysql::OPT_WRITE_TIMEOUT
+#    when MysqlPR::OPT_RECONNECT
+#    when MysqlPR::SET_CLIENT_IP
+#    when MysqlPR::OPT_SSL_VERIFY_SERVER_CERT
+#    when MysqlPR::OPT_USE_EMBEDDED_CONNECTION
+#    when MysqlPR::OPT_USE_REMOTE_CONNECTION
+    when MysqlPR::OPT_WRITE_TIMEOUT
       @write_timeout = value.to_i
-#    when Mysql::READ_DEFAULT_FILE
-#    when Mysql::READ_DEFAULT_GROUP
-#    when Mysql::REPORT_DATA_TRUNCATION
-#    when Mysql::SECURE_AUTH
-#    when Mysql::SET_CHARSET_DIR
-    when Mysql::SET_CHARSET_NAME
+#    when MysqlPR::READ_DEFAULT_FILE
+#    when MysqlPR::READ_DEFAULT_GROUP
+#    when MysqlPR::REPORT_DATA_TRUNCATION
+#    when MysqlPR::SECURE_AUTH
+#    when MysqlPR::SET_CHARSET_DIR
+    when MysqlPR::SET_CHARSET_NAME
       @charset = Charset.by_name value.to_s
-#    when Mysql::SHARED_MEMORY_BASE_NAME
+#    when MysqlPR::SHARED_MEMORY_BASE_NAME
     else
       warn "option not implemented: #{opt}"
     end
@@ -206,7 +206,7 @@ class MysqlPR
   alias get_client_version client_version
 
   # Set charset of MySQL connection.
-  # @param [String / Mysql::Charset] cs
+  # @param [String / MysqlPR::Charset] cs
   def charset=(cs)
     charset = cs.is_a?(Charset) ? cs : Charset.by_name(cs)
     if @protocol
@@ -250,7 +250,7 @@ class MysqlPR
 
   # @return [Integer] protocol version
   def proto_info
-    Mysql::Protocol::VERSION
+    MysqlPR::Protocol::VERSION
   end
   alias get_proto_info proto_info
 
@@ -307,8 +307,8 @@ class MysqlPR
 
   # Execute query string.
   # @param [String] str Query.
-  # @yield [Mysql::Result] evaluated per query.
-  # @return [Mysql::Result] If {#query_with_result} is true and result set exist.
+  # @yield [MysqlPR::Result] evaluated per query.
+  # @return [MysqlPR::Result] If {#query_with_result} is true and result set exist.
   # @return [nil] If {#query_with_result} is true and the query does not return result set.
   # @return [Mysql] If {#query_with_result} is false or block is specified
   # @example
@@ -343,7 +343,7 @@ class MysqlPR
   alias real_query query
 
   # Get all data for last query if query_with_result is false.
-  # @return [Mysql::Result]
+  # @return [MysqlPR::Result]
   def store_result
     check_connection
     raise ClientError, 'invalid usage' unless @result_exist
@@ -358,14 +358,14 @@ class MysqlPR
     @protocol.thread_id
   end
 
-  # Use result of query. The result data is retrieved when you use Mysql::Result#fetch.
-  # @return [Mysql::Result]
+  # Use result of query. The result data is retrieved when you use MysqlPR::Result#fetch.
+  # @return [MysqlPR::Result]
   def use_result
     store_result
   end
 
   # Set server option.
-  # @param [Integer] opt {Mysql::OPTION_MULTI_STATEMENTS_ON} or {Mysql::OPTION_MULTI_STATEMENTS_OFF}
+  # @param [Integer] opt {MysqlPR::OPTION_MULTI_STATEMENTS_ON} or {MysqlPR::OPTION_MULTI_STATEMENTS_OFF}
   # @return [Mysql] self
   def set_server_option(opt)
     check_connection
@@ -395,7 +395,7 @@ class MysqlPR
 
   # Parse prepared-statement.
   # @param [String] str query string
-  # @return [Mysql::Stmt] Prepared-statement object
+  # @return [MysqlPR::Stmt] Prepared-statement object
   def prepare(str)
     st = Stmt.new @protocol, @charset
     st.prepare str
@@ -404,16 +404,16 @@ class MysqlPR
 
   # @private
   # Make empty prepared-statement object.
-  # @return [Mysql::Stmt] If block is not specified.
+  # @return [MysqlPR::Stmt] If block is not specified.
   def stmt_init
     Stmt.new @protocol, @charset
   end
 
-  # Returns Mysql::Result object that is empty.
+  # Returns MysqlPR::Result object that is empty.
   # Use fetch_fields to get list of fields.
   # @param [String] table table name.
   # @param [String] field field name that may contain wild card.
-  # @return [Mysql::Result]
+  # @return [MysqlPR::Result]
   def list_fields(table, field=nil)
     check_connection
     begin
@@ -426,7 +426,7 @@ class MysqlPR
     end
   end
 
-  # @return [Mysql::Result] containing process list
+  # @return [MysqlPR::Result] containing process list
   def list_processes
     check_connection
     @fields = @protocol.process_info_command
@@ -451,7 +451,7 @@ class MysqlPR
   end
 
   # Flush tables or caches.
-  # @param [Integer] op operation. Use Mysql::REFRESH_* value.
+  # @param [Integer] op operation. Use MysqlPR::REFRESH_* value.
   # @return [Mysql] self
   def refresh(op)
     check_connection
@@ -462,7 +462,7 @@ class MysqlPR
   # Reload grant tables.
   # @return [Mysql] self
   def reload
-    refresh Mysql::REFRESH_GRANT
+    refresh MysqlPR::REFRESH_GRANT
   end
 
   # Select default database
@@ -567,7 +567,7 @@ class MysqlPR
 
     # @private
     def inspect
-      "#<Mysql::Field:#{@name}>"
+      "#<MysqlPR::Field:#{@name}>"
     end
 
     # @return [Boolean] true if numeric field.
@@ -608,10 +608,10 @@ class MysqlPR
   class ResultBase
     include Enumerable
 
-    # @return [Array<Mysql::Field>] field list
+    # @return [Array<MysqlPR::Field>] field list
     attr_reader :fields
 
-    # @param [Array of Mysql::Field] fields
+    # @param [Array of MysqlPR::Field] fields
     def initialize(fields)
       @fields = fields
       @field_index = 0             # index of field
@@ -711,8 +711,8 @@ class MysqlPR
   # Result set for simple query
   class Result < ResultBase
     # @private
-    # @param [Array<Mysql::Field>] fields
-    # @param [Mysql::Protocol] protocol
+    # @param [Array<MysqlPR::Field>] fields
+    # @param [MysqlPR::Protocol] protocol
     def initialize(fields, protocol=nil)
       super fields
       return unless protocol
@@ -735,7 +735,7 @@ class MysqlPR
       end
     end
 
-    # @return [Mysql::Field] current field
+    # @return [MysqlPR::Field] current field
     def fetch_field
       return nil if @field_index >= @fields.length
       ret = @fields[@field_index]
@@ -759,13 +759,13 @@ class MysqlPR
 
     # Return specified field
     # @param [Integer] n field index
-    # @return [Mysql::Field] field
+    # @return [MysqlPR::Field] field
     def fetch_field_direct(n)
       raise ClientError, "invalid argument: #{n}" if n < 0 or n >= @fields.length
       @fields[n]
     end
 
-    # @return [Array<Mysql::Field>] all fields
+    # @return [Array<MysqlPR::Field>] all fields
     def fetch_fields
       @fields
     end
@@ -786,9 +786,9 @@ class MysqlPR
   # Result set for prepared statement
   class StatementResult < ResultBase
     # @private
-    # @param [Array<Mysql::Field>] fields
-    # @param [Mysql::Protocol] protocol
-    # @param [Mysql::Charset] charset
+    # @param [Array<MysqlPR::Field>] fields
+    # @param [MysqlPR::Protocol] protocol
+    # @param [MysqlPR::Charset] charset
     def initialize(fields, protocol, charset)
       super fields
       @records = protocol.stmt_retr_all_records @fields, charset
@@ -808,7 +808,7 @@ class MysqlPR
   # @!attribute [r] param_count
   #   @return [Integer]
   # @!attribute [r] fields
-  #   @return [Array<Mysql::Field>]
+  #   @return [Array<MysqlPR::Field>]
   # @!attribute [r] sqlstate
   #   @return [String]
   class Stmt
@@ -825,8 +825,8 @@ class MysqlPR
     end
 
     # @private
-    # @param [Mysql::Protocol] protocol
-    # @param [Mysql::Charset] charset
+    # @param [MysqlPR::Protocol] protocol
+    # @param [MysqlPR::Charset] charset
     def initialize(protocol, charset)
       @protocol = protocol
       @charset = charset
@@ -838,7 +838,7 @@ class MysqlPR
     end
 
     # @private
-    # parse prepared-statement and return {Mysql::Stmt} object
+    # parse prepared-statement and return {MysqlPR::Stmt} object
     # @param [String] str query string
     # @return self
     def prepare(str)
@@ -857,7 +857,7 @@ class MysqlPR
 
     # Execute prepared statement.
     # @param [Object] values values passed to query
-    # @return [Mysql::Stmt] self
+    # @return [MysqlPR::Stmt] self
     def execute(*values)
       raise ClientError, "not prepared" unless @param_count
       raise ClientError, "parameter count mismatch" if values.length != @param_count
@@ -901,7 +901,7 @@ class MysqlPR
           col.to_s
         elsif type == Float && !col.is_a?(Float)
           col.to_i.to_f
-        elsif type == Mysql::Time && !col.is_a?(Mysql::Time)
+        elsif type == MysqlPR::Time && !col.is_a?(MysqlPR::Time)
           if col.to_s =~ /\A\d+\z/
             i = col.to_s.to_i
             if i < 100000000
@@ -922,9 +922,9 @@ class MysqlPR
             elsif y < 100
               y += 1900
             end
-            Mysql::Time.new(y, m, d, h, mm, s)
+            MysqlPR::Time.new(y, m, d, h, mm, s)
           else
-            Mysql::Time.new
+            MysqlPR::Time.new
           end
         else
           col
@@ -941,14 +941,14 @@ class MysqlPR
     end
 
     # Set retrieve type of value
-    # @param [Numeric / Fixnum / Integer / Float / String / Mysql::Time / nil] args value type
-    # @return [Mysql::Stmt] self
+    # @param [Numeric / Fixnum / Integer / Float / String / MysqlPR::Time / nil] args value type
+    # @return [MysqlPR::Stmt] self
     def bind_result(*args)
       if @fields.length != args.length
         raise ClientError, "bind_result: result value count(#{@fields.length}) != number of argument(#{args.length})"
       end
       args.each do |a|
-        raise TypeError unless [Numeric, Fixnum, Integer, Float, String, Mysql::Time, nil].include? a
+        raise TypeError unless [Numeric, Fixnum, Integer, Float, String, MysqlPR::Time, nil].include? a
       end
       @bind_result = args
       self
@@ -956,7 +956,7 @@ class MysqlPR
 
     # Iterate block with record.
     # @yield [Array] record data
-    # @return [Mysql::Stmt] self
+    # @return [MysqlPR::Stmt] self
     # @return [Enumerator] If block is not specified
     def each(&block)
       return enum_for(:each) unless block
@@ -969,7 +969,7 @@ class MysqlPR
     # Iterate block with record as Hash.
     # @param [Boolean] with_table if true, hash key is "table_name.field_name".
     # @yield [Hash] record data
-    # @return [Mysql::Stmt] self
+    # @return [MysqlPR::Stmt] self
     # @return [Enumerator] If block is not specified
     def each_hash(with_table=nil, &block)
       return enum_for(:each_hash, with_table) unless block
@@ -1014,9 +1014,9 @@ class MysqlPR
     def free_result
     end
 
-    # Returns Mysql::Result object that is empty.
+    # Returns MysqlPR::Result object that is empty.
     # Use fetch_fields to get list of fields.
-    # @return [Mysql::Result]
+    # @return [MysqlPR::Result]
     def result_metadata
       return nil if @fields.empty?
       Result.new @fields
@@ -1061,7 +1061,7 @@ class MysqlPR
 
     # @private
     def ==(other)
-      other.is_a?(Mysql::Time) &&
+      other.is_a?(MysqlPR::Time) &&
         @year == other.year && @month == other.month && @day == other.day &&
         @hour == other.hour && @minute == other.minute && @second == other.second &&
         @neg == neg && @second_part == other.second_part

@@ -44,17 +44,17 @@ class MysqlPR
       when Field::TYPE_DATE
         len = pkt.utiny
         y, m, d = pkt.read(len).unpack("vCC")
-        t = Mysql::Time.new(y, m, d, nil, nil, nil)
+        t = MysqlPR::Time.new(y, m, d, nil, nil, nil)
         return t
       when Field::TYPE_DATETIME, Field::TYPE_TIMESTAMP
         len = pkt.utiny
         y, m, d, h, mi, s, sp = pkt.read(len).unpack("vCCCCCV")
-        return Mysql::Time.new(y, m, d, h, mi, s, false, sp)
+        return MysqlPR::Time.new(y, m, d, h, mi, s, false, sp)
       when Field::TYPE_TIME
         len = pkt.utiny
         sign, d, h, mi, s, sp = pkt.read(len).unpack("CVCCCV")
         h = d.to_i * 24 + h.to_i
-        return Mysql::Time.new(0, 0, 0, h, mi, s, sign!=0, sp)
+        return MysqlPR::Time.new(0, 0, 0, h, mi, s, sign!=0, sp)
       when Field::TYPE_YEAR
         return pkt.ushort
       when Field::TYPE_BIT
@@ -117,7 +117,7 @@ class MysqlPR
       when String
         type = Field::TYPE_STRING
         val = Packet.lcs(v)
-      when Mysql::Time, ::Time
+      when MysqlPR::Time, ::Time
         type = Field::TYPE_DATETIME
         val = [7, v.year, v.month, v.day, v.hour, v.min, v.sec].pack("CvCCCCC")
       else
@@ -185,7 +185,7 @@ class MysqlPR
     # passwd  :: [String / nil] password
     # db      :: [String / nil] default database name. nil: no default.
     # flag    :: [Integer] client flag
-    # charset :: [Mysql::Charset / nil] charset for connection. nil: use server's charset
+    # charset :: [MysqlPR::Charset / nil] charset for connection. nil: use server's charset
     # === Exception
     # ProtocolError :: The old style password is not supported
     def authenticate(user, passwd, db, flag, charset)
@@ -266,7 +266,7 @@ class MysqlPR
     # === Argument
     # n :: [Integer] number of fields
     # === Return
-    # [Array of Mysql::Field] field list
+    # [Array of MysqlPR::Field] field list
     def retr_fields(n)
       check_state :FIELD
       begin
@@ -404,7 +404,7 @@ class MysqlPR
       check_state :READY
       begin
         reset
-        write ExecutePacket.serialize(stmt_id, Mysql::Stmt::CURSOR_TYPE_NO_CURSOR, values)
+        write ExecutePacket.serialize(stmt_id, MysqlPR::Stmt::CURSOR_TYPE_NO_CURSOR, values)
         get_result
       rescue
         set_state :READY
@@ -414,8 +414,8 @@ class MysqlPR
 
     # Retrieve all records for prepared statement
     # === Argument
-    # fields  :: [Array of Mysql::Fields] field list
-    # charset :: [Mysql::Charset]
+    # fields  :: [Array of MysqlPR::Fields] field list
+    # charset :: [MysqlPR::Charset]
     # === Return
     # [Array of Array of Object] all records
     def stmt_retr_all_records(fields, charset)
@@ -515,10 +515,10 @@ class MysqlPR
           f, errno, message = ret.unpack("Cva*")    # Version 4.0 Error
           @sqlstate = ""
         end
-        if Mysql::ServerError::ERROR_MAP.key? errno
-          raise Mysql::ServerError::ERROR_MAP[errno].new(message, @sqlstate)
+        if MysqlPR::ServerError::ERROR_MAP.key? errno
+          raise MysqlPR::ServerError::ERROR_MAP[errno].new(message, @sqlstate)
         end
-        raise Mysql::ServerError.new(message, @sqlstate)
+        raise MysqlPR::ServerError.new(message, @sqlstate)
       end
       Packet.new(ret)
     end
@@ -713,7 +713,7 @@ class MysqlPR
           netvalues.concat n if v
           t
         end
-        [Mysql::COM_STMT_EXECUTE, statement_id, cursor_type, 1, nbm, 1, types.pack("v*"), netvalues].pack("CVCVa*Ca*a*")
+        [MysqlPR::COM_STMT_EXECUTE, statement_id, cursor_type, 1, nbm, 1, types.pack("v*"), netvalues].pack("CVCVa*Ca*a*")
       end
 
       # make null bitmap
@@ -765,7 +765,7 @@ class MysqlPR
         else
           unsigned = f.flags & Field::UNSIGNED_FLAG != 0
           v = Protocol.net2value(@packet, f.type, unsigned)
-          if v.is_a? Numeric or v.is_a? Mysql::Time
+          if v.is_a? Numeric or v.is_a? MysqlPR::Time
             v
           elsif f.type == Field::TYPE_BIT or f.charsetnr == Charset::BINARY_CHARSET_NUMBER
             Charset.to_binary(v)

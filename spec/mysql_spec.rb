@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 require "tempfile"
 
-require "mysql"
+require "../lib/mysqlpr"
 
 # MYSQL_USER must have ALL privilege for MYSQL_DATABASE.* and RELOAD privilege for *.*
-MYSQL_SERVER   = ENV['MYSQL_SERVER']
-MYSQL_USER     = ENV['MYSQL_USER']
-MYSQL_PASSWORD = ENV['MYSQL_PASSWORD']
+MYSQL_SERVER   = ENV['MYSQL_SERVER'] || "127.0.0.1"
+MYSQL_USER     = ENV['MYSQL_USER']   || "root"
+MYSQL_PASSWORD = ENV['MYSQL_PASSWORD'] || ""
 MYSQL_DATABASE = ENV['MYSQL_DATABASE'] || "test_for_mysql_ruby"
-MYSQL_PORT     = ENV['MYSQL_PORT']
-MYSQL_SOCKET   = ENV['MYSQL_SOCKET']
+MYSQL_PORT     = ENV['MYSQL_PORT'] || 3306
+MYSQL_SOCKET   = ENV['MYSQL_SOCKET'] || nil
 
 describe 'MysqlPR::VERSION' do
   it 'returns client version' do
-    MysqlPR::VERSION.should == 20909
+    MysqlPR::VERSION.should == 20910
   end
 end
 
-describe 'Mysql.init' do
+describe 'MysqlPR.init' do
   it 'returns Mysql object' do
-    Mysql.init.should be_kind_of Mysql
+    MysqlPR.init.should be_kind_of MysqlPR
   end
 end
 
-describe 'Mysql.real_connect' do
+describe 'MysqlPR.real_connect' do
   it 'connect to mysqld' do
-    @m = Mysql.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-    @m.should be_kind_of Mysql
+    @m = MysqlPR.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m.should be_kind_of MysqlPR
   end
   it 'flag argument affects' do
-    @m = Mysql.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET, MysqlPR::CLIENT_FOUND_ROWS)
+    @m = MysqlPR.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET, MysqlPR::CLIENT_FOUND_ROWS)
     @m.query 'create temporary table t (c int)'
     @m.query 'insert into t values (123)'
     @m.query 'update t set c=123'
@@ -40,65 +40,65 @@ describe 'Mysql.real_connect' do
   end
 end
 
-describe 'Mysql.connect' do
+describe 'MysqlPR.connect' do
   it 'connect to mysqld' do
-    @m = Mysql.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-    @m.should be_kind_of Mysql
+    @m = MysqlPR.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m.should be_kind_of MysqlPR
   end
   after do
     @m.close if @m
   end
 end
 
-describe 'Mysql.new' do
+describe 'MysqlPR.new' do
   it 'connect to mysqld' do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-    @m.should be_kind_of Mysql
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m.should be_kind_of MysqlPR
   end
   after do
     @m.close if @m
   end
 end
 
-describe 'Mysql.escape_string' do
+describe 'MysqlPR.escape_string' do
   it 'escape special character' do
-    Mysql.escape_string("abc'def\"ghi\0jkl%mno").should == "abc\\'def\\\"ghi\\0jkl%mno"
+    MysqlPR.escape_string("abc'def\"ghi\0jkl%mno").should == "abc\\'def\\\"ghi\\0jkl%mno"
   end
 end
 
-describe 'Mysql.quote' do
+describe 'MysqlPR.quote' do
   it 'escape special character' do
-    Mysql.quote("abc'def\"ghi\0jkl%mno").should == "abc\\'def\\\"ghi\\0jkl%mno"
+    MysqlPR.quote("abc'def\"ghi\0jkl%mno").should == "abc\\'def\\\"ghi\\0jkl%mno"
   end
 end
 
-describe 'Mysql.client_info' do
+describe 'MysqlPR.client_info' do
   it 'returns client version as string' do
-    Mysql.client_info.should == '5.0.0'
+    MysqlPR.client_info.should == '5.0.0'
   end
 end
 
-describe 'Mysql.get_client_info' do
+describe 'MysqlPR.get_client_info' do
   it 'returns client version as string' do
-    Mysql.get_client_info.should == '5.0.0'
+    MysqlPR.get_client_info.should == '5.0.0'
   end
 end
 
-describe 'Mysql.client_version' do
+describe 'MysqlPR.client_version' do
   it 'returns client version as Integer' do
-    Mysql.client_version.should == 50000
+    MysqlPR.client_version.should == 50000
   end
 end
 
-describe 'Mysql.get_client_version' do
+describe 'MysqlPR.get_client_version' do
   it 'returns client version as Integer' do
-    Mysql.client_version.should == 50000
+    MysqlPR.client_version.should == 50000
   end
 end
 
 describe 'Mysql#real_connect' do
   it 'connect to mysqld' do
-    @m = Mysql.init
+    @m = MysqlPR.init
     @m.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET).should == @m
   end
   after do
@@ -108,7 +108,7 @@ end
 
 describe 'Mysql#connect' do
   it 'connect to mysqld' do
-    @m = Mysql.init
+    @m = MysqlPR.init
     @m.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET).should == @m
   end
   after do
@@ -118,7 +118,7 @@ end
 
 describe 'Mysql#options' do
   before do
-    @m = Mysql.init
+    @m = MysqlPR.init
   end
   after do
     @m.close
@@ -160,7 +160,7 @@ end
 
 describe 'Mysql' do
   before do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
   end
 
   after do
@@ -213,7 +213,7 @@ describe 'Mysql' do
 
   describe '#character_set_name' do
     it 'returns charset name' do
-      m = Mysql.init
+      m = MysqlPR.init
       m.options MysqlPR::SET_CHARSET_NAME, 'cp932'
       m.connect MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET
       m.character_set_name.should == 'cp932'
@@ -342,7 +342,7 @@ describe 'Mysql' do
       @m.kill(@m.thread_id).should == @m
     end
     it 'kill specified connection' do
-      m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+      m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
       m.list_processes.map(&:first).should be_include @m.thread_id.to_s
       m.close
     end
@@ -615,7 +615,7 @@ end
 
 describe 'multiple statement query:' do
   before :all do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.set_server_option(MysqlPR::OPTION_MULTI_STATEMENTS_ON)
     @res = @m.query 'select 1,2; select 3,4,5'
   end
@@ -648,7 +648,7 @@ end
 
 describe 'MysqlPR::Result' do
   before do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.charset = 'latin1'
     @m.query 'create temporary table t (id int, str char(10), primary key (id))'
     @m.query "insert into t values (1,'abc'),(2,'defg'),(3,'hi'),(4,null)"
@@ -808,7 +808,7 @@ end
 
 describe 'MysqlPR::Field' do
   before do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.charset = 'latin1'
     @m.query 'create temporary table t (id int default 0, str char(10), primary key (id))'
     @m.query "insert into t values (1,'abc'),(2,'defg'),(3,'hi'),(4,null)"
@@ -905,7 +905,7 @@ end
 
 describe 'create MysqlPR::Stmt object:' do
   before do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
   end
 
   after do
@@ -923,7 +923,7 @@ end
 
 describe 'MysqlPR::Stmt' do
   before do
-    @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    @m = MysqlPR.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @s = @m.stmt_init
   end
 
@@ -1680,7 +1680,7 @@ end
 
 describe 'MysqlPR::Error' do
   before do
-    m = Mysql.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
+    m = MysqlPR.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     begin
       m.query('hogehoge')
     rescue => @e
@@ -1697,82 +1697,5 @@ describe 'MysqlPR::Error' do
 
   it '#sqlstate is sqlstate value as String' do
     @e.sqlstate.should == '42000'
-  end
-end
-
-if defined? Encoding
-  describe 'Connection charset is UTF-8:' do
-    before do
-      @m = Mysql.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-      @m.charset = "utf8"
-      @m.query "create temporary table t (utf8 char(10) charset utf8, cp932 char(10) charset cp932, eucjp char(10) charset eucjpms, bin varbinary(10))"
-      @utf8 = "いろは"
-      @cp932 = @utf8.encode "CP932"
-      @eucjp = @utf8.encode "EUC-JP-MS"
-      @bin = "\x00\x01\x7F\x80\xFE\xFF".force_encoding("ASCII-8BIT")
-      @default_internal = Encoding.default_internal
-    end
-
-    after do
-      Encoding.default_internal = @default_internal
-    end
-
-    describe 'default_internal is CP932' do
-      before do
-        Encoding.default_internal = 'CP932'
-      end
-      it 'is converted to CP932' do
-        @m.query('select "あいう"').fetch.should == ["\x82\xA0\x82\xA2\x82\xA4".force_encoding("CP932")]
-      end
-    end
-
-    describe 'query with CP932 encoding' do
-      it 'is converted to UTF-8' do
-        @m.query('select HEX("あいう")'.encode("CP932")).fetch.should == ["E38182E38184E38186"]
-      end
-    end
-
-    describe 'prepared statement with CP932 encoding' do
-      it 'is converted to UTF-8' do
-        @m.prepare('select HEX("あいう")'.encode("CP932")).execute.fetch.should == ["E38182E38184E38186"]
-      end
-    end
-
-    describe 'The encoding of data are correspond to charset of column:' do
-      before do
-        @m.prepare("insert into t (utf8,cp932,eucjp,bin) values (?,?,?,?)").execute @utf8, @cp932, @eucjp, @bin
-      end
-      it 'data is stored as is' do
-        @m.query('select hex(utf8),hex(cp932),hex(eucjp),hex(bin) from t').fetch.should == ['E38184E3828DE381AF', '82A282EB82CD', 'A4A4A4EDA4CF', '00017F80FEFF']
-      end
-      it 'By simple query, charset of retrieved data is connection charset' do
-        @m.query('select utf8,cp932,eucjp,bin from t').fetch.should == [@utf8, @utf8, @utf8, @bin.dup.force_encoding("UTF-8")]
-      end
-      it 'By prepared statement, charset of retrieved data is connection charset except for binary' do
-        @m.prepare('select utf8,cp932,eucjp,bin from t').execute.fetch.should == [@utf8, @utf8, @utf8, @bin]
-      end
-    end
-
-    describe 'The encoding of data are different from charset of column:' do
-      before do
-        @m.prepare("insert into t (utf8,cp932,eucjp,bin) values (?,?,?,?)").execute @utf8, @utf8, @utf8, @utf8
-      end
-      it 'stored data is converted' do
-        @m.query("select hex(utf8),hex(cp932),hex(eucjp),hex(bin) from t").fetch.should == ["E38184E3828DE381AF", "82A282EB82CD", "A4A4A4EDA4CF", "E38184E3828DE381AF"]
-      end
-      it 'By simple query, charset of retrieved data is connection charset' do
-        @m.query("select utf8,cp932,eucjp,bin from t").fetch.should == [@utf8, @utf8, @utf8, @utf8]
-      end
-      it 'By prepared statement, charset of retrieved data is connection charset except for binary' do
-        @m.prepare("select utf8,cp932,eucjp,bin from t").execute.fetch.should == [@utf8, @utf8, @utf8, @utf8.dup.force_encoding("ASCII-8BIT")]
-      end
-    end
-
-    describe 'The data include invalid byte code:' do
-      it 'raises Encoding::InvalidByteSequenceError' do
-        cp932 = "\x01\xFF\x80".force_encoding("CP932")
-        proc{@m.prepare("insert into t (cp932) values (?)").execute cp932}.should raise_error(Encoding::InvalidByteSequenceError)
-      end
-    end
   end
 end

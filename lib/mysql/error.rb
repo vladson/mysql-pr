@@ -15,7 +15,7 @@ class MysqlPR
         klass.const_set 'ERRNO', errno
         self.const_set excname, klass
         self::ERROR_MAP[errno] = klass
-        Mysql::Error.const_set errname, errno
+        MysqlPR::Error.const_set errname, errno
       end
     end
 
@@ -745,7 +745,7 @@ class MysqlPR
   end
 
   ServerError.define_error_class(/\AER_/)
-  ServerError::ERROR_MAP.values.each{|v| Mysql.const_set v.name.split(/::/).last, v} # for compatibility
+  ServerError::ERROR_MAP.values.each{|v| MysqlPR.const_set v.name.split(/::/).last, v} # for compatibility
 
   # client side error
   class ClientError < Error
