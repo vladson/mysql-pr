@@ -10,11 +10,11 @@
 #  end
 class MysqlPR
 
-  require "mysql/constants"
-  require "mysql/error"
-  require "mysql/charset"
-  require "mysql/protocol"
-  require "mysql/packet.rb"
+  require "mysql-pr/constants"
+  require "mysql-pr/error"
+  require "mysql-pr/charset"
+  require "mysql-pr/protocol"
+  require "mysql-pr/packet.rb"
   
   VERSION            = 20910               # Version number of this library
   MYSQL_UNIX_PORT    = "/tmp/mysql.sock"   # UNIX domain socket filename

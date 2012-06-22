@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require "tempfile"
 
-require "../lib/mysqlpr"
+require "../lib/mysql-pr"
 
 # MYSQL_USER must have ALL privilege for MYSQL_DATABASE.* and RELOAD privilege for *.*
 MYSQL_SERVER   = ENV['MYSQL_SERVER'] || "127.0.0.1"
