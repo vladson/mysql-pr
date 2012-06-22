@@ -1,7 +1,7 @@
 # Copyright (C) 2003-2010 TOMITA Masahiro
 # mailto:tommy@tmtm.org
 
-class Mysql
+class MysqlPR
   class Error < StandardError
     ERRNO = 0
 

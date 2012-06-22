@@ -1,7 +1,7 @@
 # Copyright (C) 2003-2008 TOMITA Masahiro
 # mailto:tommy@tmtm.org
 
-class Mysql
+class MysqlPR
   # Command
   COM_SLEEP               = 0
   COM_QUIT                = 1

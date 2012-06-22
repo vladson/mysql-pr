@@ -11,9 +11,9 @@ MYSQL_DATABASE = ENV['MYSQL_DATABASE'] || "test_for_mysql_ruby"
 MYSQL_PORT     = ENV['MYSQL_PORT']
 MYSQL_SOCKET   = ENV['MYSQL_SOCKET']
 
-describe 'Mysql::VERSION' do
+describe 'MysqlPR::VERSION' do
   it 'returns client version' do
-    Mysql::VERSION.should == 20909
+    MysqlPR::VERSION.should == 20909
   end
 end
 
@@ -29,7 +29,7 @@ describe 'Mysql.real_connect' do
     @m.should be_kind_of Mysql
   end
   it 'flag argument affects' do
-    @m = Mysql.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET, Mysql::CLIENT_FOUND_ROWS)
+    @m = Mysql.real_connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET, MysqlPR::CLIENT_FOUND_ROWS)
     @m.query 'create temporary table t (c int)'
     @m.query 'insert into t values (123)'
     @m.query 'update t set c=123'
@@ -124,35 +124,35 @@ describe 'Mysql#options' do
     @m.close
   end
   it 'INIT_COMMAND: execute query when connecting' do
-    @m.options(Mysql::INIT_COMMAND, "SET AUTOCOMMIT=0").should == @m
+    @m.options(MysqlPR::INIT_COMMAND, "SET AUTOCOMMIT=0").should == @m
     @m.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET).should == @m
     @m.query('select @@AUTOCOMMIT').fetch_row.should == ["0"]
   end
   it 'OPT_CONNECT_TIMEOUT: set timeout for connecting' do
-    @m.options(Mysql::OPT_CONNECT_TIMEOUT, 0.1).should == @m
+    @m.options(MysqlPR::OPT_CONNECT_TIMEOUT, 0.1).should == @m
     UNIXSocket.stub!(:new).and_return{sleep 1}
     TCPSocket.stub!(:new).and_return{sleep 1}
-    proc{@m.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)}.should raise_error Mysql::ClientError, 'connection timeout'
-    proc{@m.connect}.should raise_error Mysql::ClientError, 'connection timeout'
+    proc{@m.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)}.should raise_error MysqlPR::ClientError, 'connection timeout'
+    proc{@m.connect}.should raise_error MysqlPR::ClientError, 'connection timeout'
   end
   it 'OPT_LOCAL_INFILE: client can execute LOAD DATA LOCAL INFILE query' do
     tmpf = Tempfile.new 'mysql_spec'
     tmpf.puts "123\tabc\n"
     tmpf.close
-    @m.options(Mysql::OPT_LOCAL_INFILE, true).should == @m
+    @m.options(MysqlPR::OPT_LOCAL_INFILE, true).should == @m
     @m.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.query('create temporary table t (i int, c char(10))')
     @m.query("load data local infile '#{tmpf.path}' into table t")
     @m.query('select * from t').fetch_row.should == ['123','abc']
   end
   it 'OPT_READ_TIMEOUT: set timeout for reading packet' do
-    @m.options(Mysql::OPT_READ_TIMEOUT, 10).should == @m
+    @m.options(MysqlPR::OPT_READ_TIMEOUT, 10).should == @m
   end
   it 'OPT_WRITE_TIMEOUT: set timeout for writing packet' do
-    @m.options(Mysql::OPT_WRITE_TIMEOUT, 10).should == @m
+    @m.options(MysqlPR::OPT_WRITE_TIMEOUT, 10).should == @m
   end
   it 'SET_CHARSET_NAME: set charset for connection' do
-    @m.options(Mysql::SET_CHARSET_NAME, 'utf8').should == @m
+    @m.options(MysqlPR::SET_CHARSET_NAME, 'utf8').should == @m
     @m.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.query('select @@character_set_connection').fetch_row.should == ['utf8']
   end
@@ -176,7 +176,7 @@ describe 'Mysql' do
     else
       it 'raise error if charset is multibyte' do
         @m.charset = 'cp932'
-        proc{@m.escape_string("abc'def\"ghi\0jkl%mno_\x95\\")}.should raise_error(Mysql::ClientError, 'Mysql#escape_string is called for unsafe multibyte charset')
+        proc{@m.escape_string("abc'def\"ghi\0jkl%mno_\x95\\")}.should raise_error(MysqlPR::ClientError, 'Mysql#escape_string is called for unsafe multibyte charset')
       end
       it 'not warn if charset is singlebyte' do
         @m.charset = 'latin1'
@@ -214,7 +214,7 @@ describe 'Mysql' do
   describe '#character_set_name' do
     it 'returns charset name' do
       m = Mysql.init
-      m.options Mysql::SET_CHARSET_NAME, 'cp932'
+      m.options MysqlPR::SET_CHARSET_NAME, 'cp932'
       m.connect MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET
       m.character_set_name.should == 'cp932'
     end
@@ -365,13 +365,13 @@ describe 'Mysql' do
     end
     it 'returns result set that contains information of fields' do
       ret = @m.list_fields('t')
-      ret.should be_kind_of Mysql::Result
+      ret.should be_kind_of MysqlPR::Result
       ret.num_rows.should == 0
       ret.fetch_fields.map{|f|f.name}.should == ['i','c','d']
     end
     it 'with pattern returns result set that contains information of fields that matches pattern' do
       ret = @m.list_fields('t', 'i')
-      ret.should be_kind_of Mysql::Result
+      ret.should be_kind_of MysqlPR::Result
       ret.num_rows.should == 0
       ret.fetch_fields.map{|f|f.name}.should == ['i']
     end
@@ -380,7 +380,7 @@ describe 'Mysql' do
   describe '#list_processes' do
     it 'returns result set that contains information of all connections' do
       ret = @m.list_processes
-      ret.should be_kind_of Mysql::Result
+      ret.should be_kind_of MysqlPR::Result
       ret.find{|r|r[0].to_i == @m.thread_id}[4].should == "Processlist"
     end
   end
@@ -410,8 +410,8 @@ describe 'Mysql' do
   end
 
   describe '#query' do
-    it 'returns Mysql::Result if query returns results' do
-      @m.query('select 123').should be_kind_of Mysql::Result
+    it 'returns MysqlPR::Result if query returns results' do
+      @m.query('select 123').should be_kind_of MysqlPR::Result
     end
     it 'returns nil if query returns no results' do
       @m.query('set @hoge:=123').should == nil
@@ -426,13 +426,13 @@ describe 'Mysql' do
 
   describe '#real_query' do
     it 'is same as #query' do
-      @m.real_query('select 123').should be_kind_of Mysql::Result
+      @m.real_query('select 123').should be_kind_of MysqlPR::Result
     end
   end
 
   describe '#refresh' do
     it 'returns self' do
-      @m.refresh(Mysql::REFRESH_HOSTS).should == @m
+      @m.refresh(MysqlPR::REFRESH_HOSTS).should == @m
     end
   end
 
@@ -459,19 +459,19 @@ describe 'Mysql' do
   end
 
   describe '#store_result' do
-    it 'returns Mysql::Result' do
+    it 'returns MysqlPR::Result' do
       @m.query_with_result = false
       @m.query 'select 1,2,3'
       ret = @m.store_result
-      ret.should be_kind_of Mysql::Result
+      ret.should be_kind_of MysqlPR::Result
       ret.fetch_row.should == ['1','2','3']
     end
     it 'raises error when no query' do
-      proc{@m.store_result}.should raise_error Mysql::Error
+      proc{@m.store_result}.should raise_error MysqlPR::Error
     end
     it 'raises error when query does not return results' do
       @m.query 'set @hoge:=123'
-      proc{@m.store_result}.should raise_error Mysql::Error
+      proc{@m.store_result}.should raise_error MysqlPR::Error
     end
   end
 
@@ -482,19 +482,19 @@ describe 'Mysql' do
   end
 
   describe '#use_result' do
-    it 'returns Mysql::Result' do
+    it 'returns MysqlPR::Result' do
       @m.query_with_result = false
       @m.query 'select 1,2,3'
       ret = @m.use_result
-      ret.should be_kind_of Mysql::Result
+      ret.should be_kind_of MysqlPR::Result
       ret.fetch_row.should == ['1','2','3']
     end
     it 'raises error when no query' do
-      proc{@m.use_result}.should raise_error Mysql::Error
+      proc{@m.use_result}.should raise_error MysqlPR::Error
     end
     it 'raises error when query does not return results' do
       @m.query 'set @hoge:=123'
-      proc{@m.use_result}.should raise_error Mysql::Error
+      proc{@m.use_result}.should raise_error MysqlPR::Error
     end
   end
 
@@ -548,7 +548,7 @@ describe 'Mysql' do
 
   describe '#set_server_option' do
     it 'returns self' do
-      @m.set_server_option(Mysql::OPTION_MULTI_STATEMENTS_ON).should == @m
+      @m.set_server_option(MysqlPR::OPTION_MULTI_STATEMENTS_ON).should == @m
     end
   end
 
@@ -587,11 +587,11 @@ describe 'Mysql' do
     it 'returns self' do
       @m.query('select 1'){}.should == @m
     end
-    it 'evaluate block with Mysql::Result' do
-      @m.query('select 1'){|res| res.should be_kind_of Mysql::Result}.should == @m
+    it 'evaluate block with MysqlPR::Result' do
+      @m.query('select 1'){|res| res.should be_kind_of MysqlPR::Result}.should == @m
     end
     it 'evaluate block multiple times if multiple query is specified' do
-      @m.set_server_option Mysql::OPTION_MULTI_STATEMENTS_ON
+      @m.set_server_option MysqlPR::OPTION_MULTI_STATEMENTS_ON
       cnt = 0
       expect = [["1"], ["2"]]
       @m.query('select 1; select 2'){|res|
@@ -601,7 +601,7 @@ describe 'Mysql' do
       cnt.should == 2
     end
     it 'evaluate block only when query has result' do
-      @m.set_server_option Mysql::OPTION_MULTI_STATEMENTS_ON
+      @m.set_server_option MysqlPR::OPTION_MULTI_STATEMENTS_ON
       cnt = 0
       expect = [["1"], ["2"]]
       @m.query('select 1; set @hoge:=1; select 2'){|res|
@@ -616,7 +616,7 @@ end
 describe 'multiple statement query:' do
   before :all do
     @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-    @m.set_server_option(Mysql::OPTION_MULTI_STATEMENTS_ON)
+    @m.set_server_option(MysqlPR::OPTION_MULTI_STATEMENTS_ON)
     @res = @m.query 'select 1,2; select 3,4,5'
   end
   it 'Mysql#query returns results for first query' do
@@ -646,7 +646,7 @@ describe 'multiple statement query:' do
   end
 end
 
-describe 'Mysql::Result' do
+describe 'MysqlPR::Result' do
   before do
     @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.charset = 'latin1'
@@ -672,17 +672,17 @@ describe 'Mysql::Result' do
     f.name.should == 'id'
     f.table.should == 't'
     f.def.should == nil
-    f.type.should == Mysql::Field::TYPE_LONG
+    f.type.should == MysqlPR::Field::TYPE_LONG
     f.length.should == 11
     f.max_length == 1
-    f.flags.should == Mysql::Field::NUM_FLAG|Mysql::Field::PRI_KEY_FLAG|Mysql::Field::PART_KEY_FLAG|Mysql::Field::NOT_NULL_FLAG
+    f.flags.should == MysqlPR::Field::NUM_FLAG|MysqlPR::Field::PRI_KEY_FLAG|MysqlPR::Field::PART_KEY_FLAG|MysqlPR::Field::NOT_NULL_FLAG
     f.decimals.should == 0
 
     f = @res.fetch_field
     f.name.should == 'str'
     f.table.should == 't'
     f.def.should == nil
-    f.type.should == Mysql::Field::TYPE_STRING
+    f.type.should == MysqlPR::Field::TYPE_STRING
     f.length.should == 10
     f.max_length == 4
     f.flags.should == 0
@@ -703,8 +703,8 @@ describe 'Mysql::Result' do
     f.name.should == 'id'
     f = @res.fetch_field_direct 1
     f.name.should == 'str'
-    proc{@res.fetch_field_direct(-1)}.should raise_error Mysql::ClientError, 'invalid argument: -1'
-    proc{@res.fetch_field_direct 2}.should raise_error Mysql::ClientError, 'invalid argument: 2'
+    proc{@res.fetch_field_direct(-1)}.should raise_error MysqlPR::ClientError, 'invalid argument: -1'
+    proc{@res.fetch_field_direct 2}.should raise_error MysqlPR::ClientError, 'invalid argument: 2'
   end
 
   it '#fetch_lengths returns array of length of field data' do
@@ -806,7 +806,7 @@ describe 'Mysql::Result' do
   end
 end
 
-describe 'Mysql::Field' do
+describe 'MysqlPR::Field' do
   before do
     @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @m.charset = 'latin1'
@@ -836,8 +836,8 @@ describe 'Mysql::Field' do
   end
 
   it '#type is type of field as Integer' do
-    @res.fetch_field.type.should == Mysql::Field::TYPE_LONG
-    @res.fetch_field.type.should == Mysql::Field::TYPE_STRING
+    @res.fetch_field.type.should == MysqlPR::Field::TYPE_LONG
+    @res.fetch_field.type.should == MysqlPR::Field::TYPE_STRING
   end
 
   it '#length is length of field' do
@@ -851,7 +851,7 @@ describe 'Mysql::Field' do
   end
 
   it '#flags is flag of field as Integer' do
-    @res.fetch_field.flags.should == Mysql::Field::NUM_FLAG|Mysql::Field::PRI_KEY_FLAG|Mysql::Field::PART_KEY_FLAG|Mysql::Field::NOT_NULL_FLAG
+    @res.fetch_field.flags.should == MysqlPR::Field::NUM_FLAG|MysqlPR::Field::PRI_KEY_FLAG|MysqlPR::Field::PART_KEY_FLAG|MysqlPR::Field::NOT_NULL_FLAG
     @res.fetch_field.flags.should == 0
   end
 
@@ -864,17 +864,17 @@ describe 'Mysql::Field' do
       'name'       => 'id',
       'table'      => 't',
       'def'        => nil,
-      'type'       => Mysql::Field::TYPE_LONG,
+      'type'       => MysqlPR::Field::TYPE_LONG,
       'length'     => 11,
       'max_length' => 1,
-      'flags'      => Mysql::Field::NUM_FLAG|Mysql::Field::PRI_KEY_FLAG|Mysql::Field::PART_KEY_FLAG|Mysql::Field::NOT_NULL_FLAG,
+      'flags'      => MysqlPR::Field::NUM_FLAG|MysqlPR::Field::PRI_KEY_FLAG|MysqlPR::Field::PART_KEY_FLAG|MysqlPR::Field::NOT_NULL_FLAG,
       'decimals'   => 0,
     }
     @res.fetch_field.hash.should == {
       'name'       => 'str',
       'table'      => 't',
       'def'        => nil,
-      'type'       => Mysql::Field::TYPE_STRING,
+      'type'       => MysqlPR::Field::TYPE_STRING,
       'length'     => 10,
       'max_length' => 4,
       'flags'      => 0,
@@ -882,9 +882,9 @@ describe 'Mysql::Field' do
     }
   end
 
-  it '#inspect returns "#<Mysql::Field:name>"' do
-    @res.fetch_field.inspect.should == '#<Mysql::Field:id>'
-    @res.fetch_field.inspect.should == '#<Mysql::Field:str>'
+  it '#inspect returns "#<MysqlPR::Field:name>"' do
+    @res.fetch_field.inspect.should == '#<MysqlPR::Field:id>'
+    @res.fetch_field.inspect.should == '#<MysqlPR::Field:str>'
   end
 
   it '#is_num? returns true if the field is numeric' do
@@ -903,7 +903,7 @@ describe 'Mysql::Field' do
   end
 end
 
-describe 'create Mysql::Stmt object:' do
+describe 'create MysqlPR::Stmt object:' do
   before do
     @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
   end
@@ -912,16 +912,16 @@ describe 'create Mysql::Stmt object:' do
     @m.close if @m
   end
 
-  it 'Mysql#stmt_init returns Mysql::Stmt object' do
-    @m.stmt_init.should be_kind_of Mysql::Stmt
+  it 'Mysql#stmt_init returns MysqlPR::Stmt object' do
+    @m.stmt_init.should be_kind_of MysqlPR::Stmt
   end
 
-  it 'Mysq;#prepare returns Mysql::Stmt object' do
-    @m.prepare("select 1").should be_kind_of Mysql::Stmt
+  it 'Mysq;#prepare returns MysqlPR::Stmt object' do
+    @m.prepare("select 1").should be_kind_of MysqlPR::Stmt
   end
 end
 
-describe 'Mysql::Stmt' do
+describe 'MysqlPR::Stmt' do
   before do
     @m = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     @s = @m.stmt_init
@@ -954,7 +954,7 @@ describe 'Mysql::Stmt' do
     it '(nil) make result format to be standard value' do
       @s.bind_result nil, nil, nil, nil
       @s.execute
-      @s.fetch.should == [123, '9abcdefg', 1.2345, Mysql::Time.new(2009,12,8,10,4,46)]
+      @s.fetch.should == [123, '9abcdefg', 1.2345, MysqlPR::Time.new(2009,12,8,10,4,46)]
     end
 
     it '(Numeric) make result format to be Integer value' do
@@ -987,10 +987,10 @@ describe 'Mysql::Stmt' do
       @s.fetch.should == [123.0, 9.0, 1.2345 , 20091208100446.0]
     end
 
-    it '(Mysql::Time) make result format to be Mysql::Time value' do
-      @s.bind_result Mysql::Time, Mysql::Time, Mysql::Time, Mysql::Time
+    it '(MysqlPR::Time) make result format to be MysqlPR::Time value' do
+      @s.bind_result MysqlPR::Time, MysqlPR::Time, MysqlPR::Time, MysqlPR::Time
       @s.execute
-      @s.fetch.should == [Mysql::Time.new(2000,1,23), Mysql::Time.new, Mysql::Time.new, Mysql::Time.new(2009,12,8,10,4,46)]
+      @s.fetch.should == [MysqlPR::Time.new(2000,1,23), MysqlPR::Time.new, MysqlPR::Time.new, MysqlPR::Time.new(2009,12,8,10,4,46)]
     end
 
     it '(invalid) raises error' do
@@ -998,7 +998,7 @@ describe 'Mysql::Stmt' do
     end
 
     it 'with mismatch argument count raise error' do
-      proc{@s.bind_result(nil)}.should raise_error(Mysql::ClientError, 'bind_result: result value count(4) != number of argument(1)')
+      proc{@s.bind_result(nil)}.should raise_error(MysqlPR::ClientError, 'bind_result: result value count(4) != number of argument(1)')
     end
   end
 
@@ -1026,8 +1026,8 @@ describe 'Mysql::Stmt' do
     @s.prepare 'select * from t'
     @s.execute
     expect = [
-      [1, 'abc', Mysql::Time.new(1970,12,24,23,59,05)],
-      [2, 'def', Mysql::Time.new(2112,9,3,12,34,56)],
+      [1, 'abc', MysqlPR::Time.new(1970,12,24,23,59,05)],
+      [2, 'def', MysqlPR::Time.new(2112,9,3,12,34,56)],
       [3, '123', nil],
     ]
     @s.each do |a|
@@ -1057,7 +1057,7 @@ describe 'Mysql::Stmt' do
 
   it '#execute with arguments that is invalid count raise error' do
     @s.prepare 'select ?'
-    proc{@s.execute 123, 456}.should raise_error(Mysql::ClientError, 'parameter count mismatch')
+    proc{@s.execute 123, 456}.should raise_error(MysqlPR::ClientError, 'parameter count mismatch')
   end
 
   it '#execute with huge value' do
@@ -1360,13 +1360,13 @@ describe 'Mysql::Stmt' do
     @s.prepare 'select i from t'
     @s.execute
     cols = @s.fetch
-    cols.should == [Mysql::Time.new]
+    cols.should == [MysqlPR::Time.new]
     cols.first.to_s.should == '0000-00-00'
     cols = @s.fetch
-    cols.should == [Mysql::Time.new(1000,1,1)]
+    cols.should == [MysqlPR::Time.new(1000,1,1)]
     cols.first.to_s.should == '1000-01-01'
     cols = @s.fetch
-    cols.should == [Mysql::Time.new(9999,12,31)]
+    cols.should == [MysqlPR::Time.new(9999,12,31)]
     cols.first.to_s.should == '9999-12-31'
   end
 
@@ -1375,9 +1375,9 @@ describe 'Mysql::Stmt' do
     @m.query "insert into t values ('0000-00-00 00:00:00'),('1000-01-01 00:00:00'),('9999-12-31 23:59:59')"
     @s.prepare 'select i from t'
     @s.execute
-    @s.fetch.should == [Mysql::Time.new]
-    @s.fetch.should == [Mysql::Time.new(1000,1,1)]
-    @s.fetch.should == [Mysql::Time.new(9999,12,31,23,59,59)]
+    @s.fetch.should == [MysqlPR::Time.new]
+    @s.fetch.should == [MysqlPR::Time.new(1000,1,1)]
+    @s.fetch.should == [MysqlPR::Time.new(9999,12,31,23,59,59)]
   end
 
   it '#fetch timestamp column' do
@@ -1385,8 +1385,8 @@ describe 'Mysql::Stmt' do
     @m.query("insert into t values ('1970-01-02 00:00:00'),('2037-12-30 23:59:59')")
     @s.prepare 'select i from t'
     @s.execute
-    @s.fetch.should == [Mysql::Time.new(1970,1,2)]
-    @s.fetch.should == [Mysql::Time.new(2037,12,30,23,59,59)]
+    @s.fetch.should == [MysqlPR::Time.new(1970,1,2)]
+    @s.fetch.should == [MysqlPR::Time.new(2037,12,30,23,59,59)]
   end
 
   it '#fetch time column' do
@@ -1394,9 +1394,9 @@ describe 'Mysql::Stmt' do
     @m.query "insert into t values ('-838:59:59'),(0),('838:59:59')"
     @s.prepare 'select i from t'
     @s.execute
-    @s.fetch.should == [Mysql::Time.new(0,0,0,838,59,59,true)]
-    @s.fetch.should == [Mysql::Time.new(0,0,0,0,0,0,false)]
-    @s.fetch.should == [Mysql::Time.new(0,0,0,838,59,59,false)]
+    @s.fetch.should == [MysqlPR::Time.new(0,0,0,838,59,59,true)]
+    @s.fetch.should == [MysqlPR::Time.new(0,0,0,0,0,0,false)]
+    @s.fetch.should == [MysqlPR::Time.new(0,0,0,838,59,59,false)]
   end
 
   it '#fetch year column' do
@@ -1559,8 +1559,8 @@ describe 'Mysql::Stmt' do
   end
 
   it '#prepare' do
-    @s.prepare('select 1').should be_kind_of Mysql::Stmt
-    proc{@s.prepare 'invalid syntax'}.should raise_error Mysql::ParseError
+    @s.prepare('select 1').should be_kind_of MysqlPR::Stmt
+    proc{@s.prepare 'invalid syntax'}.should raise_error MysqlPR::ParseError
   end
 
   it '#prepare returns self' do
@@ -1568,7 +1568,7 @@ describe 'Mysql::Stmt' do
   end
 
   it '#prepare with invalid query raises error' do
-    proc{@s.prepare 'invalid query'}.should raise_error Mysql::ParseError
+    proc{@s.prepare 'invalid query'}.should raise_error MysqlPR::ParseError
   end
 
   it '#result_metadata' do
@@ -1600,14 +1600,14 @@ describe 'Mysql::Stmt' do
   it '#sqlstate' do
     @s.prepare 'select 1'
     @s.sqlstate.should == '00000'
-    proc{@s.prepare 'hogehoge'}.should raise_error Mysql::ParseError
+    proc{@s.prepare 'hogehoge'}.should raise_error MysqlPR::ParseError
     @s.sqlstate.should == '42000'
   end
 end
 
-describe 'Mysql::Time' do
+describe 'MysqlPR::Time' do
   before do
-    @t = Mysql::Time.new
+    @t = MysqlPR::Time.new
   end
 
   it '.new with no arguments returns 0' do
@@ -1622,15 +1622,15 @@ describe 'Mysql::Time' do
   end
 
   it '#inspect' do
-    Mysql::Time.new(2009,12,8,23,35,21).inspect.should == '#<Mysql::Time:2009-12-08 23:35:21>'
+    MysqlPR::Time.new(2009,12,8,23,35,21).inspect.should == '#<MysqlPR::Time:2009-12-08 23:35:21>'
   end
 
   it '#to_s' do
-    Mysql::Time.new(2009,12,8,23,35,21).to_s.should == '2009-12-08 23:35:21'
+    MysqlPR::Time.new(2009,12,8,23,35,21).to_s.should == '2009-12-08 23:35:21'
   end
 
   it '#to_i' do
-    Mysql::Time.new(2009,12,8,23,35,21).to_i.should == 20091208233521
+    MysqlPR::Time.new(2009,12,8,23,35,21).to_i.should == 20091208233521
   end
 
   it '#year' do
@@ -1672,13 +1672,13 @@ describe 'Mysql::Time' do
   end
 
   it '#==' do
-    t1 = Mysql::Time.new 2009,12,8,23,35,21
-    t2 = Mysql::Time.new 2009,12,8,23,35,21
+    t1 = MysqlPR::Time.new 2009,12,8,23,35,21
+    t2 = MysqlPR::Time.new 2009,12,8,23,35,21
     t1.should == t2
   end
 end
 
-describe 'Mysql::Error' do
+describe 'MysqlPR::Error' do
   before do
     m = Mysql.connect(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
     begin

@@ -1,4 +1,4 @@
-class Mysql
+class MysqlPR
   class Packet
     # convert Numeric to LengthCodedBinary
     def self.lcb(num)

@@ -6,7 +6,7 @@ require "timeout"
 require "digest/sha1"
 require "stringio"
 
-class Mysql
+class MysqlPR
   # MySQL network protocol
   class Protocol
 

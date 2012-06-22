@@ -2,7 +2,7 @@
 # mailto:tommy@tmtm.org
 
 #
-class Mysql
+class MysqlPR
   # @!attribute [r] number
   #   @private
   # @!attribute [r] name

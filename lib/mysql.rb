@@ -8,18 +8,14 @@
 #  res.each do |c1, c2|
 #    p c1, c2
 #  end
-class Mysql
+class MysqlPR
 
   require "mysql/constants"
   require "mysql/error"
   require "mysql/charset"
   require "mysql/protocol"
   require "mysql/packet.rb"
-  begin
-    require "mysql/ext.so"
-  rescue LoadError
-  end
-
+  
   VERSION            = 20909               # Version number of this library
   MYSQL_UNIX_PORT    = "/tmp/mysql.sock"   # UNIX domain socket filename
   MYSQL_TCP_PORT     = 3306                # TCP socket port number

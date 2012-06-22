@@ -1,12 +1,8 @@
-= ruby-mysql
+= mysql-pr
 
 == Description
 
-MySQL connector for Ruby.
-
-== Installation
-
- ruby setup.rb
+Pure Ruby MySQL connector.
 
 === Gem Installation
 
@@ -40,9 +36,9 @@ MySQL connector for Ruby.
   Mysql#ssl_set, Mysql#reconnect
 
 * Mysql#options でサポートしているオプションは次のものだけです:
-  Mysql::INIT_COMMAND, Mysql::OPT_CONNECT_TIMEOUT,
-  Mysql::OPT_LOCAL_INFILE, Mysql::OPT_READ_TIMEOUT,
-  Mysql::OPT_WRITE_TIMEOUT, Mysql::SET_CHARSET_NAME.
+  MysqlPR::INIT_COMMAND, MysqlPR::OPT_CONNECT_TIMEOUT,
+  MysqlPR::OPT_LOCAL_INFILE, MysqlPR::OPT_READ_TIMEOUT,
+  MysqlPR::OPT_WRITE_TIMEOUT, MysqlPR::SET_CHARSET_NAME.
   これら以外を指定すると "option not implementted" という warning が標準エラー出力に出力されます。
 
 * Mysql#use_result は Mysql#store_result と同じです。つまりサーバーから一気に結果セットを読み込みます。
@@ -53,13 +49,13 @@ MySQL connector for Ruby.
   mysqld へのクエリ文字列やプリペアドステートメントで与える値は mysqld との接続の文字コードに自動的に変換されます。
   mysqld からの結果文字列は接続文字コードとして取り出されます。
 
-* Mysql::Result, Mysql::Stmt が Enumerable を include しています。
+* MysqlPR::Result, MysqlPR::Stmt が Enumerable を include しています。
 
-* ブロックなしの Mysql::Result#each, each_hash Mysql::Stmt#each, each_hash が Enumerator を返します。
+* ブロックなしの MysqlPR::Result#each, each_hash MysqlPR::Stmt#each, each_hash が Enumerator を返します。
 
 * Mysql#charset= で接続 charset を指定できます。
 
-* Mysql::Error だけでなく、エラー種別ごとにエラークラスが用意されてます。たとえば、構文エラーの場合は Mysql::ServerError::ParseError など。これらのエラーは Mysql::Error の継承クラスです。
+* MysqlPR::Error だけでなく、エラー種別ごとにエラークラスが用意されてます。たとえば、構文エラーの場合は MysqlPR::ServerError::ParseError など。これらのエラーは MysqlPR::Error の継承クラスです。
 
 == Copyright
 

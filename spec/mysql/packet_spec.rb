@@ -1,9 +1,9 @@
 # coding: binary
-describe Mysql::Packet do
+describe MysqlPR::Packet do
   def self._(s)
     s.unpack('H*').first
   end
-  subject{Mysql::Packet.new(data)}
+  subject{MysqlPR::Packet.new(data)}
   describe '#lcb' do
     [
       ["\xfb",                                 nil],
@@ -94,7 +94,7 @@ describe Mysql::Packet do
 
 end
 
-describe 'Mysql::Packet.lcb' do
+describe 'MysqlPR::Packet.lcb' do
   [
     [nil,      "\xfb"],
     [1,        "\x01"],
@@ -107,12 +107,12 @@ describe 'Mysql::Packet.lcb' do
     [0xffffffffffffffff, "\xfe\xff\xff\xff\xff\xff\xff\xff\xff"],
   ].each do |val, result|
     context "with #{val}" do
-      it{Mysql::Packet.lcb(val).should == result}
+      it{MysqlPR::Packet.lcb(val).should == result}
     end
   end
 end
 
-describe 'Mysql::Packet.lcs' do
-  it{Mysql::Packet.lcs("hoge").should == "\x04hoge"}
-  it{Mysql::Packet.lcs("あいう".force_encoding("UTF-8")).should == "\x09\xe3\x81\x82\xe3\x81\x84\xe3\x81\x86"}
+describe 'MysqlPR::Packet.lcs' do
+  it{MysqlPR::Packet.lcs("hoge").should == "\x04hoge"}
+  it{MysqlPR::Packet.lcs("あいう".force_encoding("UTF-8")).should == "\x09\xe3\x81\x82\xe3\x81\x84\xe3\x81\x86"}
 end
