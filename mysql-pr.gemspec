@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.description = 'This is MySQL connector. pure Ruby version'
   s.email = 'alex@camulus.com'
   s.homepage = 'http://github.com/ajokela/ruby-mysql'
-  s.files = ['README.rdoc', 'lib/mysql.rb', 'lib/mysql/constants.rb', 'lib/mysql/protocol.rb', 'lib/mysql/charset.rb', 'lib/mysql/error.rb', 'lib/mysql/packet.rb']
+  s.files = ['README.rdoc', 'lib/mysql-pr.rb', 'lib/mysql-pr/constants.rb', 'lib/mysql-pr/protocol.rb', 'lib/mysql-pr/charset.rb', 'lib/mysql-pr/error.rb', 'lib/mysql-pr/packet.rb']
   s.extra_rdoc_files = ['README.rdoc']
   s.test_files = ['spec/mysql_spec.rb', 'spec/mysql/packet_spec.rb']
   s.has_rdoc = true
