@@ -4,10 +4,6 @@
 
 Pure Ruby MySQL connector.
 
-=== Gem Installation
-
- gem install ruby-mysql
-
 == Features/Problems
 
 * Ruby だけで書かれているのでコンパイル不要です。
