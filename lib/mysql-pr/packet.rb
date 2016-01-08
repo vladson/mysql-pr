@@ -1,3 +1,5 @@
+#encoding: ascii-8bit
+
 class MysqlPR
   class Packet
     # convert Numeric to LengthCodedBinary
