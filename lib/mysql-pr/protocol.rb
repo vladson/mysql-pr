@@ -5,6 +5,8 @@ require "socket"
 require "timeout"
 require "digest/sha1"
 require "stringio"
+require "pry"
+require "rgeo"
 
 class MysqlPR
   # MySQL network protocol
@@ -58,6 +60,8 @@ class MysqlPR
       when Field::TYPE_YEAR
         return pkt.ushort
       when Field::TYPE_BIT
+        return pkt.lcs
+      when Field::TYPE_GEOMETRY
         return pkt.lcs
       else
         raise "not implemented: type=#{type}"
@@ -767,6 +771,11 @@ class MysqlPR
           v = Protocol.net2value(@packet, f.type, unsigned)
           if v.is_a? Numeric or v.is_a? MysqlPR::Time
             v
+          elsif f.type == Field::TYPE_GEOMETRY
+            input_ = Charset.to_binary(v)
+            marker_ = input_[4,1]
+            factory_ = ::RGeo::Geographic.simple_mercator_factory(srid: input_[0,4].unpack(marker_ == "\x01" ? 'V' : 'N').first)
+            ::RGeo::WKRep::WKBParser.new(factory_).parse(input_[4..-1])
           elsif f.type == Field::TYPE_BIT or f.charsetnr == Charset::BINARY_CHARSET_NUMBER
             Charset.to_binary(v)
           else
@@ -781,3 +790,4 @@ class MysqlPR
 
   end
 end
+]

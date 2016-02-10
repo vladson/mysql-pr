@@ -12,4 +12,6 @@ Gem::Specification.new do |s|
   s.test_files = ['spec/mysql_spec.rb', 'spec/mysql/packet_spec.rb']
   s.has_rdoc = true
   s.license = 'Ruby\'s'
+  s.add_dependency 'rgeo'
+  s.add_dependency 'pry'
 end
